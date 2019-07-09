@@ -1,0 +1,40 @@
+
+<div class='slideout_mobile_menu'>
+	<div class='slideout_mobile_menu_title'>Меню сайта</div>
+	<div class='slideout_mobile_menu_wrap'>
+		<div class='slideout_mobile_menu_item'>
+			<a href='{{ url("site:index") }}' class='nolink'>Главная</a>
+		</div>
+	</div>
+</div>
+
+<script>
+	$load.subscribe(['slideoutjs_loaded', 'jquery_loaded'], function(){
+		var slideout = new Slideout({
+			'panel': jQuery('.site_container').get(0),
+			'menu': jQuery('.slideout_mobile_menu').get(0),
+			'padding': 256,
+			'tolerance': 70,
+		});
+		/*
+		slideout.on('open', function() {
+			jQuery('.slideout_mobile_menu').addClass('menu--open');
+		});
+		slideout.on('close', function() {
+			jQuery('.slideout_mobile_menu').removeClass('menu--open');
+		});
+		*/
+		/* Toggle button 
+		jQuery(document).on('click', '.mobile_menu_open__button', (function(slideout) {
+			return function(){
+				slideout.toggle();
+			}
+		})(slideout));
+		*/
+		jQuery(document).on('click', '.slideout_mobile_menu_open__button', (function(slideout) {
+			return function(){
+				slideout.toggle();
+			}
+		})(slideout));
+	});
+</script>

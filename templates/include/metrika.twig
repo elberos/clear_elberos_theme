@@ -1,0 +1,63 @@
+{% if app.getConfig('params.metrika') %}
+
+
+{% endif %}
+
+<script>
+yaCounter=null;
+onJQueryLoaded(function (){
+	jQuery(window).load(function() {
+		if ((typeof window['yaCounterXXX']) != 'undefined')
+			yaCounter=yaCounterXXX;
+		/*console.log(yaCounter);*/
+	});
+});
+
+/* Send bounce to Google */
+setTimeout(function(){if (typeof window['gtag'] === 'function'){gtag('event', 'bounce15sec', {
+'event_category': 'bounce', 'event_action': '15sec', 
+}); }}, 15000);
+
+/* Subscribe metrika event */
+subscribeSiteEvent('metrika_event', function(event_name, data){
+	if (typeof data == 'undefined' || data == null) data = 'site_zakaz';
+	if (
+		[
+			'site_subscribe', 'site_register', 'site_zakaz', 'site_buy', 'site_callme',
+		].indexOf(data) == -1
+	)
+	{
+		data = 'site_zakaz';
+	}
+	
+	/* https://developers.google.com/analytics/devguides/collection/gtagjs/events?hl=ru */
+	if (typeof window['gtag'] === 'function'){
+		gtag('event', data, {
+			'event_category': 'goal',
+			'event_action': data
+		});
+	}
+	
+	/* https://developers.google.com/analytics/devguides/collection/analyticsjs/events */
+	else if (typeof window['ga'] === 'function'){
+		ga('send', {
+			hitType: 'event',
+			eventCategory: 'goal',
+			eventAction: data
+		});
+	}
+	
+	/* Facebook */
+	if (typeof window['fbq'] === 'function'){
+		fbq('track', data);
+	}
+	
+	/* Yandex */
+	if ((typeof yaCounter) != 'undefined' && yaCounter != null)
+		yaCounter.reachGoal(data);
+	if ((typeof yaCounterXXX) != 'undefined' && yaCounterXXX != null)
+		yaCounterXXX.reachGoal(data);
+	
+	console.log("metrika_event " + data);
+});
+</script>
