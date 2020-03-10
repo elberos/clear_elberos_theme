@@ -5,15 +5,25 @@
 <head>
 
 <meta charset="{{ site.charset }}" />
-<meta name="description" content="{{ site.description }}">
-<link rel="stylesheet" href="{{ site.theme.link }}/static/site.css?_{{ site_f_inc }}" type="text/css" media="screen" />
+<link rel="stylesheet" href="{{ site.theme.link }}/static/site.css?_{{ site.f_inc }}" type="text/css" media="screen" />
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="author" href="{{ site.theme.link }}/humans.txt" />
 <link rel="pingback" href="{{ site.pingback_url }}" />
-<link rel="profile" href="http://gmpg.org/xfn/11">
-{{function('wp_head')}}
+<link rel="profile" href="http://gmpg.org/xfn/11" />
+<link rel='icon' type='image/x-icon' href='/favicon.png' />
+
+{% include 'include/meta.twig' %}
+
+{% if site.page_vars.wp_show and site.page_vars.is_admin %}{{ function('wp_head') }}
+{% else %}
+<link rel="alternate" type="application/rss+xml" title="{{ site.name }} - Лента" href="/ru/feed" />
+<link rel='https://api.w.org/' href='/wp-json/' />
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="/wp-includes/wlwmanifest.xml" /> 
+<meta name="generator" content="WordPress" />
+{% endif %}
 
 <!-- Begin Loader -->
 <script type='text/javascript'>
@@ -35,6 +45,26 @@ function sendSiteEvent(event_name, data){
 		SITE_EVENTS[event_name][i](event_name, data);
 	}
 }
+function addGet(s, key, value)
+{
+	key = encodeURI(key); value = encodeURI(value);
+	var kvp = s.substr(1).split('&');
+	kvp = kvp.filter(function (s){return s!="";});
+	var i=kvp.length-1; var x;
+	while (i>=0)
+	{
+		x = kvp[i].split('=');
+		if (x[0]==key)
+		{
+			x[1] = value;
+			kvp[i] = x.join('=');
+			break;
+		}
+		i--;
+	}
+	if (i<0) { kvp[kvp.length] = [key, value].join('='); }
+	return kvp.join('&'); 
+}
 </script>
 <!-- End Header JS Code -->	
 
@@ -43,54 +73,56 @@ function sendSiteEvent(event_name, data){
 
 {% block assets %}
 <script type='text/javascript'>
-	$load.deliver('jquery_loaded');
+/*
+$load
+	.load(['{{ site.theme.link }}/assets/jquery-1.11.3.min.js'])
+	.deliver('jquery_loaded');
 
 $load
-	/*.subscribe([])*/
+	.subscribe(['jquery_loaded'])
 	.load(['{{ site.theme.link }}/static/site.js?_{{ site_f_inc }}'])
 	.deliver('site_loaded');
-	
-var MESSAGES = {
-	"WAIT_REQUEST":"Ожидайте, идет обработка запроса",
-	"SYSTEM_ERROR":"Системная ошибка",
-	"CLOSE":"Закрыть","OPEN":"Открыть",
-	"ADD":"Добавить","DELETE":"Удалить",
-	"ERROR":"Ошибка"
-};
+*/
 </script>
 {% endblock %}
 
 </head>
 
+
 {% block site_body %}
-<body class="{{body_class}}" data-template="layout.twig">
+<body class="{{body_class}}" data-template="base.twig">
 
 {% block site_container %}
 
-<!-- Begin Header -->
-{% include ("/include/header.twig") %}
+{% block header %}
+{% include 'include/header.twig' %}
+{% endblock %}
 
 {% block page_container %}
-<div class="page_container" id="page_container">
-{% block content %}{{ content | raw }}{% endblock %}
-</div>
+<section id="content" role="main" class="page_container">
+	<div class="section__wrap">
+		<div class="content_area">
+			{% block content %}{% endblock %}
+		</div>
+	</div>
+</section>
 {% endblock %}
 
-<!-- Begin Footer -->
-{% include ("/include/footer.twig") %}
+{% block footer %}
+{% include 'include/footer.twig' %}
 {% endblock %}
 
+{% endblock %}
 
 <!-- Other -->
-{% include ("/include/slideout.twig") %}
-
 {% block metrika %}
 {% include ("/include/metrika.twig") %}
 {% endblock %}
 
-{{ function('wp_footer') }}
+{% if site.page_vars.wp_show and site.page_vars.is_admin %}{{ function('wp_footer') }}{% endif %}
 
 </body>
 {% endblock %}
+
 
 </html>
