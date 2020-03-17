@@ -2,19 +2,21 @@
 	
 	<nav class="breadcrumbs" itemscope="" itemtype="http://schema.org/BreadcrumbList">
 		{% for item in site.breadcrumbs %}
-			<span itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem">
-				{% if not loop.last	%}
-					<a itemprop="item" href="{{ item[1] }}">
-						<span class="last" itemprop="name">{{ item[0] }}</span>
-					</a>
-					<span class="separator"> » </span>
-				{% else %}
-					<a class="last nolink" itemprop="item" href="{{ item[1] }}">
-						<span class="last" itemprop="name">{{ item[0] }}</span>
-					</a>
-				{% endif %}
-				<meta itemprop="position" content="{{ loop.index }}" />
-			</span>
+			
+			<div class='breadcrumbs__item {% if loop.last %}last{% endif %}' 
+				itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem"
+			>
+				<a class='nolink' itemprop="item" href="{{ item['url'] }}">
+					<span itemprop="name">{{ item['title'] }}</span>
+				</a>
+			</div>
+			
+			{% if not loop.last	%}
+			<span class="breadcrumbs__item separator"> / </span>
+			{% endif %}
+			
+			<meta itemprop="position" content="{{ loop.index }}" />
+			
 		{% endfor %}
 	</nav>
 	

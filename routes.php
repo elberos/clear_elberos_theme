@@ -1,9 +1,9 @@
 <?php
 
-if (!class_exists(StarterSite::class))
+if (!class_exists(SiteTemplate::class))
 {
 
-trait StarterSiteRoutes
+class SiteTemplate extends StarterSite
 {
 	
 	/**
@@ -11,23 +11,35 @@ trait StarterSiteRoutes
 	 */
 	function register_routes()
 	{
+		/*
 		$this->add_route
 		(
-			"site:articles2", "/articles",
+			"site:articles", "/articles",
 			"pages/category.twig",
 			[
-				'title' => 'Index page',
-				'description' => 'Страница 1',
+				'title' => 'Статьи',
+				'description' => 'Статьи',
 			]
 		);
+		*/
 	}
-		
+	
+	
+	/**
+	 * After setup
+	 */
+	function setup_after()
+	{
+		
+	}
+	
+	
 	/**
 	 * Extend context
 	 */
-	function extend_context()
+	function extend_context($context)
 	{
-		
+		return $context;
 	}
 	
 	
@@ -39,25 +51,6 @@ trait StarterSiteRoutes
 	{
 		$template = $this->route_info['template'];
 		$context = Timber::context();
-
-		if (!$this->breadcrumbs)
-		{
-			$this->breadcrumbs = 
-			[
-				[
-					"Главная",
-					"/"
-				],
-				[
-					$this->route_info['params']['title'],
-					$this->site_url
-				]
-			];
-		}
-
-		//var_dump( $this->site_url );
-		//var_dump( $this->route_info );
-
 		Timber::render( $template, $context );
 	}
 }

@@ -1,7 +1,5 @@
 <?php
 
-include __DIR__ . "/routes.php";
-
 define ( 'THEME_WP_SHOW', true );
 define ( 'THEME_INC', 1 ); /* ++++++ */
  
@@ -42,7 +40,6 @@ Timber::$cache = defined('TIMBER_CACHE') ? TIMBER_CACHE : false;
  */
 class StarterSite extends Timber\Site 
 {
-	use StarterSiteRoutes;
 	
 	/**
 	 * Context
@@ -72,6 +69,7 @@ class StarterSite extends Timber\Site
 	public $post = null;
 	public $post_id = "";
 	public $post_category = null;
+	public $current_category = null;
 	public $initialized = false;
 	
 	
@@ -98,7 +96,12 @@ class StarterSite extends Timber\Site
 		if ($this->post != null)
 		{
 			$this->post_id = ($this->post != null) ? $this->post->ID : "";
-			if ($this->post instanceof WP_POST) $this->post_category = get_the_category($this->post_id);
+			if ($this->post instanceof WP_POST)
+			{
+				$this->post_category = get_the_category($this->post_id);
+				$this->current_category = isset($this->post_category[0]) ? $this->post_category[0] : null;
+			}
+			if ($this->post instanceof WP_Term) $this->current_category = get_category($this->post->cat_ID);
 		}
 		$this->page_vars = 
 		[
@@ -107,7 +110,7 @@ class StarterSite extends Timber\Site
 			"is_archive" => is_archive(),
 			"is_category" => is_category(),
 			"is_page" => is_page(),
-			"is_home" => is_home(),
+			"is_home" => is_home() && $this->route_info == null,
 			"is_front_page" => is_front_page(),
 			"is_single" => is_single(),
 			"is_singular" => is_singular(),
@@ -137,6 +140,9 @@ class StarterSite extends Timber\Site
 		/* $this->main_menu = new Timber\Menu('main-' . $this->language_code); */
 		
 		$this->initialized = true;
+		
+		/* After setup */
+		$this->setup_after();
 	}
 	
 	
@@ -233,13 +239,207 @@ class StarterSite extends Timber\Site
 	{
 		/* Setup context */
 		$context['site'] = $this;
-		$this->extend_context();
+		$context = $this->extend_context($context);
+		return $context;
+	}
+	
+	
+	/**
+	 * Extend context
+	 */
+	function extend_context($context)
+	{
 		return $context;
 	}
 	
 	
 	
+	/**
+	 * Custom routes
+	 */
+	function register_routes()
+	{
+	}
+	
+	
+	/**
+	 * After setup
+	 */
+	function setup_after()
+	{
+		
+	}
+	
+	
+	/**
+	 * Render custom route
+	 */
+	function route_render()
+	{
+		$template = $this->route_info['template'];
+		$context = Timber::context();
+		Timber::render( $template, $context );
+	}
+	
+	
+	
+	/** Setup **/
+	
+	public function setup_breadcrumbs()
+	{
+		$category_base = get_option("category_base", "");
+		
+		$this->breadcrumbs = [];
+		$this->add_breadcrumbs("Главная", "/");
+		
+		if ($this->route_info != null)
+		{
+			if (isset($this->route_info['params']))
+			{
+				$title = isset($this->route_info['params']['title']) ?
+					$this->route_info['params']['title'] : "";
+				$this->add_breadcrumbs($title, $this->request['uri']);
+			}
+		}
+		
+		if ($this->page_vars["is_category"] or $this->page_vars["is_single"])
+		{
+			$url = "";
+			if ($category_base != "" && $category_base != ".")
+			{
+				$url .= "/articles";
+				$this->add_breadcrumbs("Статьи", $url);
+			}
+			
+			if ($this->current_category != null)
+			{
+				$arr = [];
+				$cat_id = $this->current_category->term_id;
+				while ($cat_id != 0)
+				{
+					$cat = $this->get_category_by_id($cat_id);
+					$arr[] = $cat; 
+					$cat_id = $cat->parent;
+				}
+				$arr = array_reverse($arr);
+				foreach ($arr as $cat)
+				{
+					$url .= "/" . $cat->slug;
+					$this->add_breadcrumbs($cat->name, $url);
+				}
+			}
+		}
+		
+		if ($this->page_vars["is_single"])
+		{
+			$this->add_breadcrumbs($this->post->post_title, $this->remove_site_url(get_the_permalink($this->post)) );
+		}
+		
+		if ($this->page > 1)
+		{
+			/* $this->add_breadcrumbs("Страница " . $this->page, urlGetAdd($this->request)); */
+		}
+		
+		//var_dump($this->breadcrumbs);
+	}
+	
+	public function setup_links()
+	{
+		$this->canonical_url = $this->get_canonical_url();
+		
+		if (!is_singular())
+		{
+			$canonical_url = $this->get_canonical_url(true);
+			$paged = max( 1, (int) get_query_var( 'paged' ) );
+			$max_page = $GLOBALS['wp_query']->max_num_pages;
+			
+			$prev_url = ($paged <= 2) ? $canonical_url : $this->url_concat($canonical_url, "/page/" . ($paged - 1));
+			$next_url = $this->url_concat($canonical_url, "/page/" . ($paged + 1));
+			
+			if ($paged >= 2 && $paged < $max_page)
+			{
+				$this->prev_url = $prev_url;
+			}
+			if ($paged < $max_page)
+			{
+				$this->next_url = $next_url;
+			}
+		}
+	}
+	
+	public function setup_article_tags()
+	{
+		if ($this->post instanceof WP_POST)
+		{
+			$this->og_type = "article";
+			
+			$dt = new \DateTime($this->post->post_date_gmt, new \DateTimezone("UTC"));
+			$dt->setTimezone( new \DateTimezone(date_default_timezone_get()) );
+			$this->article_published_time = $dt->format("c");
+			
+			$dt = new \DateTime($this->post->post_modified_gmt, new \DateTimezone("UTC"));
+			$dt->setTimezone( new \DateTimezone(date_default_timezone_get()) );
+			$this->article_modified_time = $dt->format("c");
+			
+			/* Setup article section */
+			if ($this->post_category and count($this->post_category) > 0)
+			{
+				$this->article_section = $this->post_category[0]->name;
+			}
+			
+			/* Setup article tags */
+			$tags = wp_get_post_tags($this->post_id);
+			$this->article_tags = array_map( function ($item) { return $item->name; }, $tags );
+		}
+	}
+	
+	
+	
 	/** Functions **/
+	
+	/**
+	 * Add breadcrumbs
+	 */
+	public function add_breadcrumbs($title, $url)
+	{
+		$this->breadcrumbs[] = [
+			'title' => $title,
+			'url' => $url,
+		];
+	}
+	
+	/**
+	 * Add route
+	 */
+	public function add_route($route_name, $match, $template = null, $params=[])
+	{
+		$this->routes[$route_name] = 
+		[
+			'route_name' => $route_name,
+			'template' => $template,
+			'params' => $params,
+			'match' => $match,
+		];
+	}
+	
+	function get_route_params()
+	{
+		if ($this->route_params == null) return null;
+		if (!isset($this->route_params['params'])) return null;
+		return $this->route_params['params'];
+	}
+	
+	function get_category_by_id($cat_id)
+	{
+		return get_category($cat_id);
+	}
+	
+	function remove_site_url($url)
+	{
+		$site_url = $this->site_url;
+		if (strpos($url, $site_url) === 0) $url = substr($url, strlen($site_url));
+		return $url;
+	}
 	
 	function get_canonical_url($un_paged = false)
 	{
@@ -381,100 +581,6 @@ class StarterSite extends Timber\Site
 		return "";
 	}
 	
-	public function setup_breadcrumbs()
-	{
-		if ( class_exists(\RankMath\Frontend\Breadcrumbs::class) )
-		{
-			$breadcrumbs = \RankMath\Frontend\Breadcrumbs::get();
-			if ($breadcrumbs)
-			{
-				$canonical_url =$this->canonical_url;
-				$site_url = $this->site_url;
-				$site_url_sz = strlen($site_url);
-				$data = $breadcrumbs->get_crumbs();
-				$data = array_map
-				(
-					function ($item) use ($site_url_sz, $canonical_url)
-					{
-						if ($item[1] == "") $item[1] = $canonical_url;
-						$item[1] = substr($item[1], $site_url_sz);
-						return $item;
-					},
-					$data
-				);
-				
-				$data = array_filter
-				(
-					$data,
-					function ($item)
-					{
-						if ($item[0] == "") return false;
-						return true;
-					}
-				);
-				
-				$data[0][1] = "/" . $this->language_code() . "/";
-				if (count($data) > 1) $data[ count($data) - 1 ][0] = $this->title;
-				
-				$this->breadcrumbs = $data;
-			}
-			else
-			{
-				// var_dump( $timber_site->route_info );
-			}
-		}
-	}
-	
-	public function setup_links()
-	{
-		$this->canonical_url = $this->get_canonical_url();
-		
-		if (!is_singular())
-		{
-			$canonical_url = $this->get_canonical_url(true);
-			$paged = max( 1, (int) get_query_var( 'paged' ) );
-			$max_page = $GLOBALS['wp_query']->max_num_pages;
-			
-			$prev_url = ($paged <= 2) ? $canonical_url : $this->url_concat($canonical_url, "/page/" . ($paged - 1));
-			$next_url = $this->url_concat($canonical_url, "/page/" . ($paged + 1));
-			
-			if ($paged >= 2 && $paged < $max_page)
-			{
-				$this->prev_url = $prev_url;
-			}
-			if ($paged < $max_page)
-			{
-				$this->next_url = $next_url;
-			}
-		}
-	}
-	
-	public function setup_article_tags()
-	{
-		if ($this->post instanceof WP_POST)
-		{
-			$this->og_type = "article";
-			
-			$dt = new \DateTime($this->post->post_date_gmt, new \DateTimezone("UTC"));
-			$dt->setTimezone( new \DateTimezone(date_default_timezone_get()) );
-			$this->article_published_time = $dt->format("c");
-			
-			$dt = new \DateTime($this->post->post_modified_gmt, new \DateTimezone("UTC"));
-			$dt->setTimezone( new \DateTimezone(date_default_timezone_get()) );
-			$this->article_modified_time = $dt->format("c");
-			
-			/* Setup article section */
-			if ($this->post_category and count($this->post_category) > 0)
-			{
-				$this->article_section = $this->post_category[0]->name;
-			}
-			
-			/* Setup article tags */
-			$tags = wp_get_post_tags($this->post_id);
-			$this->article_tags = array_map( function ($item) { return $item->name; }, $tags );
-		}
-	}
-	
 	public function get_the_archive_title() 
 	{
 		if ( is_category() ) {
@@ -600,31 +706,6 @@ class StarterSite extends Timber\Site
 	
 	
 	
-	/** Routes **/
-	
-	/**
-	 * Add route
-	 */
-	public function add_route($route_name, $match, $template = null, $params=[])
-	{
-		$this->routes[$route_name] = 
-		[
-			'route_name' => $route_name,
-			'template' => $template,
-			'params' => $params,
-			'match' => $match,
-		];
-	}
-	
-	function get_route_params()
-	{
-		if ($this->route_params == null) return null;
-		if (!isset($this->route_params['params'])) return null;
-		return $this->route_params['params'];
-	}
-	
-	
-	
 	/** Twig functions **/
 	
 	/**
@@ -739,8 +820,10 @@ class StarterSite extends Timber\Site
 	}
 }
 
+include __DIR__ . "/routes.php";
+
 global $timber_site;
 if (!$timber_site)
 {
-	$timber_site = new StarterSite();
+	$timber_site = new SiteTemplate();
 }
