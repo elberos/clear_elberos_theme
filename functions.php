@@ -1,7 +1,7 @@
 <?php
 
 define ( 'THEME_WP_SHOW', true );
-define ( 'THEME_INC', 1 ); /* ++++++ */
+define ( 'THEME_INC', 2 ); /* +++++++ */
  
 if ( ! class_exists( 'Timber' ) ) {
 	add_action( 'admin_notices', function() {
@@ -328,6 +328,11 @@ class StarterSite extends Timber\Site
 					$this->add_breadcrumbs($cat->name, $url);
 				}
 			}
+		}
+		
+		if ($this->page_vars["is_page"])
+		{
+			$this->add_breadcrumbs($this->post->post_title, $this->remove_site_url(get_the_permalink($this->post)) );
 		}
 		
 		if ($this->page_vars["is_single"])

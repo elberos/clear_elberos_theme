@@ -2,17 +2,17 @@
 
 {% block content %}
 
-<article class="article article_{{post.post_type}}" id="article_{{post.ID}}">
+<article class="article article--{{post.post_type}}" id="article_{{post.ID}}">
 
-	<h1 class="article_h1">
+	<h1 class="article__h1">
 		{{ post.title }}
-		{% if post.edit_link %}<a href="{{ post.edit_link | raw }}">Edit</a>{% endif %}
+		{% if post.edit_link %}<a class="link" href="{{ post.edit_link | raw }}">[Edit]</a>{% endif %}
 	</h1>
-	<div class="article_body page_ckeditor_data">
+	<div class="article__body page_ckeditor_data">
 		{{ post.content | raw }}
 	</div>
-	<div class="article_post_date">
-		Дата публикации: {{ post.date }}
+	<div class="article__date">
+		{{ post.date }}
 	</div>
 
 </article>
