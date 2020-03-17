@@ -11,7 +11,7 @@
 <h1 class="category_h1">{{ site.title }}</h1>
 
 {% if is_search and count(posts) == 0 %}
-	<center>{{ __('По вашему запросу ничего не найдено', 'bayrell') }}</center>
+	<center>{{ __('По вашему запросу ничего не найдено', 'template') }}</center>
 {% endif %}
 
 {% for post in posts %}
