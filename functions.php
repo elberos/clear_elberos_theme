@@ -1,5 +1,7 @@
 <?php
 
+include __DIR__ . "/routes.php";
+
 define ( 'THEME_WP_SHOW', true );
 define ( 'THEME_INC', 1 ); /* ++++++ */
  
@@ -40,6 +42,8 @@ Timber::$cache = defined('TIMBER_CACHE') ? TIMBER_CACHE : false;
  */
 class StarterSite extends Timber\Site 
 {
+	use StarterSiteRoutes;
+	
 	/**
 	 * Context
 	 */
@@ -49,6 +53,7 @@ class StarterSite extends Timber\Site
 	public $language_code;
 	public $routes;
 	public $route_info = null;
+	public $request = null;
 	public $f_inc = "";
 	public $full_title = "";
 	public $search_text = "";
@@ -67,6 +72,7 @@ class StarterSite extends Timber\Site
 	public $post = null;
 	public $post_id = "";
 	public $post_category = null;
+	public $initialized = false;
 	
 	
 	/** Constructor **/
@@ -75,13 +81,12 @@ class StarterSite extends Timber\Site
 	{
 		parent::__construct();
 		
+		// Register routes
+		$this->register_routes(); // in file routes
+		
 		// Register hooks
 		$this->register_hooks();
-		
-		// Register routes
-		$this->register_routes();
 	}
-	
 	
 	public function setup()
 	{
@@ -107,6 +112,7 @@ class StarterSite extends Timber\Site
 			"is_single" => is_single(),
 			"is_singular" => is_singular(),
 			"is_post" => $this->post instanceof WP_POST,
+			"is_404" => is_404(),
 		];
 		$this->language = get_locale();
 		$this->language_code = $this->get_current_locale_code();
@@ -129,293 +135,8 @@ class StarterSite extends Timber\Site
 		
 		/* Setup menu */
 		/* $this->main_menu = new Timber\Menu('main-' . $this->language_code); */
-	}
-	
-	
-	
-	/** Functions **/
-	
-	function get_canonical_url($un_paged = false)
-	{
-		global $wp;
 		
-		$site_url = $this->site_url;
-		$locale_code = $this->get_current_locale_code();
-		
-		$uri = $wp->request;
-		if (strpos($uri, $locale_code) === 0)
-		{
-			$uri = substr($uri, strlen($locale_code) + 1);
-		}
-		
-		if ($un_paged)
-		{
-			$paged = max( 1, (int) get_query_var( 'paged' ) );
-			$str = "page/" . $paged;
-			if (strpos($uri, $str) !== false)
-			{
-				$uri = substr($uri, 0, -strlen($str));
-			}
-		}
-		
-		$url = $this->url_concat($site_url . "/" . $locale_code, $uri);
-		if (substr($url, -1) == "/") $url = substr($url, 0, -1);
-		if ($uri == false) $url .= "/";
-		
-		return $url;
-	}
-	
-	public function get_site_name()
-	{
-		return get_bloginfo("name");
-	}
-	
-	public function get_site_description()
-	{
-		return get_bloginfo("description");
-	}
-	
-	public function get_page_title()
-	{
-		$route_params = $this->get_route_params();
-		if ($route_params != null)
-		{
-			return $route_params['title'];
-		}
-		
-		if (is_home())
-		{
-			$title = $this->get_site_name();
-		}
-		else
-		{
-			$vars = $this->page_vars;
-			$title = "";
-			if ($this->post != null && $this->post->taxonomy == 'category')
-			{
-				$title = "Категория " . $this->post->name;
-			}
-			else if ($this->post != null && $this->post->taxonomy == 'post_tag')
-			{
-				$title = "Тег " . $this->post->name;
-			}
-			else if (is_archive())
-			{
-				$title = "Архив за " . $this->get_the_archive_title();
-			}
-			else if ($this->search_text != null)
-			{
-				$title = "Результаты поиска для " . $this->search_text;
-			}
-			else
-			{
-				$title = get_the_title();
-			}
-		}
-		
-		$page = max( 1, (int) get_query_var( 'paged' ) );
-		if ($page > 1)
-		{
-			$title .= " страница " . $page;
-		}
-		
-		return $title;
-	}
-	
-	public function get_page_full_title($title)
-	{
-		if (is_home())
-		{
-			return $title;
-		}
-		return $title . " | " . $this->name;
-	}
-	
-	public function get_page_description()
-	{
-		$route_params = $this->get_route_params();
-		if ($route_params != null)
-		{
-			return $route_params['description'];
-		}
-		
-		$str = \RankMath\Paper\Paper::get()->get_description();
-		if ($str == "")
-		{
-			$str = get_bloginfo("description");
-		}
-		
-		return $str;
-	}
-	
-	public function get_page_robots()
-	{
-		if ( class_exists(\RankMath\Paper\Paper::class) )
-		{
-			$robots = \RankMath\Paper\Paper::get()->get_robots();
-			if (!isset($robots['index'])) $robots['index'] = 'index';
-			if (!isset($robots['follow'])) $robots['follow'] = 'follow';
-			if (isset($robots['max-snippet'])) unset($robots['max-snippet']);
-			if (isset($robots['max-video-preview'])) unset($robots['max-video-preview']);
-			if (isset($robots['max-image-preview'])) unset($robots['max-image-preview']);
-			return implode( ",", array_values($robots) );
-		}
-		return "";
-	}
-	
-	function get_current_locale_code()
-	{
-		$locale = get_locale();
-		if ($locale == "ru_RU") return "ru";
-		else if ($locale == "en_US") return "en";
-		return "";
-	}
-	
-	public function setup_breadcrumbs()
-	{
-		if ( class_exists(\RankMath\Frontend\Breadcrumbs::class) )
-		{
-			$breadcrumbs = \RankMath\Frontend\Breadcrumbs::get();
-			if ($breadcrumbs)
-			{
-				$canonical_url =$this->canonical_url;
-				$site_url = $this->site_url;
-				$site_url_sz = strlen($site_url);
-				$data = $breadcrumbs->get_crumbs();
-				$data = array_map
-				(
-					function ($item) use ($site_url_sz, $canonical_url)
-					{
-						if ($item[1] == "") $item[1] = $canonical_url;
-						$item[1] = substr($item[1], $site_url_sz);
-						return $item;
-					},
-					$data
-				);
-				
-				$data = array_filter
-				(
-					$data,
-					function ($item)
-					{
-						if ($item[0] == "") return false;
-						return true;
-					}
-				);
-				
-				$data[0][1] = "/" . $this->language_code() . "/";
-				if (count($data) > 1) $data[ count($data) - 1 ][0] = $this->title;
-				
-				$this->breadcrumbs = $data;
-			}
-		}
-	}
-	
-	public function setup_links()
-	{
-		$this->canonical_url = $this->get_canonical_url();
-		
-		if (!is_singular())
-		{
-			$canonical_url = $this->get_canonical_url(true);
-			$paged = max( 1, (int) get_query_var( 'paged' ) );
-			$max_page = $GLOBALS['wp_query']->max_num_pages;
-			
-			$prev_url = ($paged <= 2) ? $canonical_url : $this->url_concat($canonical_url, "/page/" . ($paged - 1));
-			$next_url = $this->url_concat($canonical_url, "/page/" . ($paged + 1));
-			
-			if ($paged >= 2 && $paged < $max_page)
-			{
-				$this->prev_url = $prev_url;
-			}
-			if ($paged < $max_page)
-			{
-				$this->next_url = $next_url;
-			}
-		}
-	}
-	
-	public function setup_article_tags()
-	{
-		if ($this->post instanceof WP_POST)
-		{
-			$this->og_type = "article";
-			
-			$dt = new \DateTime($this->post->post_date_gmt, new \DateTimezone("UTC"));
-			$dt->setTimezone( new \DateTimezone(date_default_timezone_get()) );
-			$this->article_published_time = $dt->format("c");
-			
-			$dt = new \DateTime($this->post->post_modified_gmt, new \DateTimezone("UTC"));
-			$dt->setTimezone( new \DateTimezone(date_default_timezone_get()) );
-			$this->article_modified_time = $dt->format("c");
-			
-			/* Setup article section */
-			if ($this->post_category and count($this->post_category) > 0)
-			{
-				$this->article_section = $this->post_category[0]->name;
-			}
-			
-			/* Setup article tags */
-			$tags = wp_get_post_tags($this->post_id);
-			$this->article_tags = array_map( function ($item) { return $item->name; }, $tags );
-		}
-	}
-	
-	public function get_the_archive_title() 
-	{
-		if ( is_category() ) {
-			/* translators: Category archive title. %s: Category name. */
-			$title = sprintf( __( '%s' ), single_cat_title( '', false ) );
-		} elseif ( is_tag() ) {
-			/* translators: Tag archive title. %s: Tag name. */
-			$title = sprintf( __( '%s' ), single_tag_title( '', false ) );
-		} elseif ( is_author() ) {
-			/* translators: Author archive title. %s: Author name. */
-			$title = sprintf( __( '%s' ), '<span class="vcard">' . get_the_author() . '</span>' );
-		} elseif ( is_year() ) {
-			/* translators: Yearly archive title. %s: Year. */
-			$title = sprintf( __( '%s' ), get_the_date( _x( 'Y', 'yearly archives date format' ) ) );
-		} elseif ( is_month() ) {
-			/* translators: Monthly archive title. %s: Month name and year. */
-			$title = sprintf( __( '%s' ), get_the_date( _x( 'F Y', 'monthly archives date format' ) ) );
-		} elseif ( is_day() ) {
-			/* translators: Daily archive title. %s: Date. */
-			$title = sprintf( __( '%s' ), get_the_date( _x( 'F j, Y', 'daily archives date format' ) ) );
-		}
-	 
-		/**
-		 * Filters the archive title.
-		 */
-		return apply_filters( 'get_the_archive_title', $title );
-	}
-	
-	
-	/** Actions & Filters **/
-	
-	function register_hooks()
-	{
-		add_action( 'after_setup_theme', array( $this, 'action_theme_supports' ) );
-		add_filter( 'timber/context', array( $this, 'action_add_to_context' ) );
-		add_filter( 'timber/twig', array( $this, 'action_add_to_twig' ) );
-		add_action( 'init', array( $this, 'action_register_post_types' ) );
-		add_action( 'init', array( $this, 'action_register_taxonomies' ) );
-		add_action( 'widgets_init', array( $this, 'action_widgets_init' ) );
-		add_action( 'wp', array( $this, 'setup' ), 99999 );
-		add_filter( 'term_link', function($url){ return str_replace('/./', '/', $url); }, 10, 1 );
-		
-		// Title
-		add_filter( 'wp_title', [$this, 'filter_page_title'], 99999, 1 );
-		add_filter( 'thematic_doctitle', [$this, 'filter_page_title'], 99999, 1 );
-		add_filter( 'pre_get_document_title', [$this, 'filter_page_title'], 99999, 1 );
-	}
-	
-	function filter_page_title($orig_title)
-	{
-		if (is_home())
-		{
-			return $this->title;
-		}		
-		return $this->title . " | " . $this->site_name;
+		$this->initialized = true;
 	}
 	
 	
@@ -512,7 +233,369 @@ class StarterSite extends Timber\Site
 	{
 		/* Setup context */
 		$context['site'] = $this;
+		$this->extend_context();
 		return $context;
+	}
+	
+	
+	
+	/** Functions **/
+	
+	function get_canonical_url($un_paged = false)
+	{
+		global $wp;
+		
+		$site_url = $this->site_url;
+		$locale_code = $this->get_current_locale_code();
+		
+		$uri = $this->request['uri'];
+		if (strpos($uri, $locale_code) === 0)
+		{
+			$uri = substr($uri, strlen($locale_code) + 1);
+		}
+		
+		if ($un_paged)
+		{
+			$paged = max( 1, (int) get_query_var( 'paged' ) );
+			$str = "page/" . $paged;
+			if (strpos($uri, $str) !== false)
+			{
+				$uri = substr($uri, 0, -strlen($str));
+			}
+		}
+		
+		$url = $this->url_concat($site_url . "/" . $locale_code, $uri);
+		if (substr($url, -1) == "/") $url = substr($url, 0, -1);
+		if ($uri == false) $url .= "/";
+		
+		return $url;
+	}
+	
+	public function get_site_name()
+	{
+		return get_bloginfo("name");
+	}
+	
+	public function get_site_description()
+	{
+		return get_bloginfo("description");
+	}
+	
+	public function get_page_title()
+	{
+		$route_params = $this->get_route_params();
+		if ($route_params != null)
+		{
+			return $route_params['title'];
+		}
+		
+		if (is_home())
+		{
+			$title = $this->get_site_name();
+		}
+		else
+		{
+			$vars = $this->page_vars;
+			$title = "";
+			if ($this->post != null && $this->post->taxonomy == 'category')
+			{
+				$title = "Категория " . $this->post->name;
+			}
+			else if ($this->post != null && $this->post->taxonomy == 'post_tag')
+			{
+				$title = "Тег " . $this->post->name;
+			}
+			else if (is_archive())
+			{
+				$title = "Архив за " . $this->get_the_archive_title();
+			}
+			else if ($this->search_text != null)
+			{
+				$title = "Результаты поиска для " . $this->search_text;
+			}
+			else
+			{
+				$title = get_the_title();
+			}
+		}
+		
+		$page = max( 1, (int) get_query_var( 'paged' ) );
+		if ($page > 1)
+		{
+			$title .= " страница " . $page;
+		}
+		
+		return $title;
+	}
+	
+	public function get_page_full_title($title)
+	{
+		if (is_home())
+		{
+			return $title;
+		}
+		return $title . " | " . $this->name;
+	}
+	
+	public function get_page_description()
+	{
+		$str = "";
+		$route_params = $this->get_route_params();
+		if ($route_params != null)
+		{
+			return $route_params['description'];
+		}
+		
+		if (class_exists(\RankMath\Paper\Paper::class))
+		{
+			$str = \RankMath\Paper\Paper::get()->get_description();
+			if ($str == "")
+			{
+				$str = get_bloginfo("description");
+			}
+		}
+		
+		return $str;
+	}
+	
+	public function get_page_robots()
+	{
+		if ( class_exists(\RankMath\Paper\Paper::class) )
+		{
+			$robots = \RankMath\Paper\Paper::get()->get_robots();
+			if (!isset($robots['index'])) $robots['index'] = 'index';
+			if (!isset($robots['follow'])) $robots['follow'] = 'follow';
+			if (isset($robots['max-snippet'])) unset($robots['max-snippet']);
+			if (isset($robots['max-video-preview'])) unset($robots['max-video-preview']);
+			if (isset($robots['max-image-preview'])) unset($robots['max-image-preview']);
+			return implode( ",", array_values($robots) );
+		}
+		return "";
+	}
+	
+	function get_current_locale_code()
+	{
+		$locale = get_locale();
+		if ($locale == "ru_RU") return "ru";
+		else if ($locale == "en_US") return "en";
+		return "";
+	}
+	
+	public function setup_breadcrumbs()
+	{
+		if ( class_exists(\RankMath\Frontend\Breadcrumbs::class) )
+		{
+			$breadcrumbs = \RankMath\Frontend\Breadcrumbs::get();
+			if ($breadcrumbs)
+			{
+				$canonical_url =$this->canonical_url;
+				$site_url = $this->site_url;
+				$site_url_sz = strlen($site_url);
+				$data = $breadcrumbs->get_crumbs();
+				$data = array_map
+				(
+					function ($item) use ($site_url_sz, $canonical_url)
+					{
+						if ($item[1] == "") $item[1] = $canonical_url;
+						$item[1] = substr($item[1], $site_url_sz);
+						return $item;
+					},
+					$data
+				);
+				
+				$data = array_filter
+				(
+					$data,
+					function ($item)
+					{
+						if ($item[0] == "") return false;
+						return true;
+					}
+				);
+				
+				$data[0][1] = "/" . $this->language_code() . "/";
+				if (count($data) > 1) $data[ count($data) - 1 ][0] = $this->title;
+				
+				$this->breadcrumbs = $data;
+			}
+			else
+			{
+				// var_dump( $timber_site->route_info );
+			}
+		}
+	}
+	
+	public function setup_links()
+	{
+		$this->canonical_url = $this->get_canonical_url();
+		
+		if (!is_singular())
+		{
+			$canonical_url = $this->get_canonical_url(true);
+			$paged = max( 1, (int) get_query_var( 'paged' ) );
+			$max_page = $GLOBALS['wp_query']->max_num_pages;
+			
+			$prev_url = ($paged <= 2) ? $canonical_url : $this->url_concat($canonical_url, "/page/" . ($paged - 1));
+			$next_url = $this->url_concat($canonical_url, "/page/" . ($paged + 1));
+			
+			if ($paged >= 2 && $paged < $max_page)
+			{
+				$this->prev_url = $prev_url;
+			}
+			if ($paged < $max_page)
+			{
+				$this->next_url = $next_url;
+			}
+		}
+	}
+	
+	public function setup_article_tags()
+	{
+		if ($this->post instanceof WP_POST)
+		{
+			$this->og_type = "article";
+			
+			$dt = new \DateTime($this->post->post_date_gmt, new \DateTimezone("UTC"));
+			$dt->setTimezone( new \DateTimezone(date_default_timezone_get()) );
+			$this->article_published_time = $dt->format("c");
+			
+			$dt = new \DateTime($this->post->post_modified_gmt, new \DateTimezone("UTC"));
+			$dt->setTimezone( new \DateTimezone(date_default_timezone_get()) );
+			$this->article_modified_time = $dt->format("c");
+			
+			/* Setup article section */
+			if ($this->post_category and count($this->post_category) > 0)
+			{
+				$this->article_section = $this->post_category[0]->name;
+			}
+			
+			/* Setup article tags */
+			$tags = wp_get_post_tags($this->post_id);
+			$this->article_tags = array_map( function ($item) { return $item->name; }, $tags );
+		}
+	}
+	
+	public function get_the_archive_title() 
+	{
+		if ( is_category() ) {
+			/* translators: Category archive title. %s: Category name. */
+			$title = sprintf( __( '%s' ), single_cat_title( '', false ) );
+		} elseif ( is_tag() ) {
+			/* translators: Tag archive title. %s: Tag name. */
+			$title = sprintf( __( '%s' ), single_tag_title( '', false ) );
+		} elseif ( is_author() ) {
+			/* translators: Author archive title. %s: Author name. */
+			$title = sprintf( __( '%s' ), '<span class="vcard">' . get_the_author() . '</span>' );
+		} elseif ( is_year() ) {
+			/* translators: Yearly archive title. %s: Year. */
+			$title = sprintf( __( '%s' ), get_the_date( _x( 'Y', 'yearly archives date format' ) ) );
+		} elseif ( is_month() ) {
+			/* translators: Monthly archive title. %s: Month name and year. */
+			$title = sprintf( __( '%s' ), get_the_date( _x( 'F Y', 'monthly archives date format' ) ) );
+		} elseif ( is_day() ) {
+			/* translators: Daily archive title. %s: Date. */
+			$title = sprintf( __( '%s' ), get_the_date( _x( 'F j, Y', 'daily archives date format' ) ) );
+		}
+	 
+		/**
+		 * Filters the archive title.
+		 */
+		return apply_filters( 'get_the_archive_title', $title );
+	}
+	
+	
+	/** Actions & Filters **/
+	
+	function register_hooks()
+	{
+		add_action( 'do_parse_request', array( $this, 'action_do_parse_request' ) );
+		add_action( 'after_setup_theme', array( $this, 'action_theme_supports' ) );
+		add_filter( 'timber/context', array( $this, 'action_add_to_context' ) );
+		add_filter( 'timber/twig', array( $this, 'action_add_to_twig' ) );
+		add_action( 'init', array( $this, 'action_register_post_types' ) );
+		add_action( 'init', array( $this, 'action_register_taxonomies' ) );
+		add_action( 'init', array( $this, 'action_setup_route' ) );
+		add_action( 'widgets_init', array( $this, 'action_widgets_init' ) );
+		add_action( 'wp', array( $this, 'setup' ), 99999 );
+		add_filter( 'term_link', function($url){ return str_replace('/./', '/', $url); }, 10, 1 );
+		
+		// Title
+		add_filter( 'wp_title', [$this, 'filter_page_title'], 99999, 1 );
+		add_filter( 'thematic_doctitle', [$this, 'filter_page_title'], 99999, 1 );
+		add_filter( 'pre_get_document_title', [$this, 'filter_page_title'], 99999, 1 );
+		add_filter( 'redirect_canonical', [$this, 'filter_redirect_canonical'], 99999, 1 );
+		add_filter( 'template_include', [$this, 'filter_template_include'], 99999, 1 );
+	}
+	
+	function filter_redirect_canonical($url)
+	{
+		if ($this->route_info != null) return false;
+		return $url;
+	}
+	
+	function filter_page_title($orig_title)
+	{
+		if (is_home())
+		{
+			return $this->title;
+		}		
+		return $this->title . " | " . $this->site_name;
+	}
+	
+	
+	function filter_template_include($template)
+	{
+		if ($this->route_info != null)
+		{
+			$t = locate_template("routes.php");
+			if ($t) return $t;
+		}
+		return $template;
+	}
+	
+	
+	/**
+	 * Setup route
+	 */
+	function action_setup_route()
+	{
+		$current_uri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : "/";
+		$arr = parse_url($current_uri);
+		
+		$this->request = [
+			"method" => isset($_SERVER['REQUEST_METHOD']) ? strtoupper($_SERVER['REQUEST_METHOD']) : "GET",
+			"uri" => $current_uri,
+			"path" => isset($arr['path']) ? $arr['path'] : "/",
+			"query" => isset($arr['query']) ? $arr['query'] : "",
+		];
+		$request_uri = $this->request["path"];
+		
+		foreach ($this->routes as $route)
+		{
+			$matches = [];
+			$match = $route['match'];
+			$match = str_replace("/", "\\/", $match);
+			$flag = preg_match_all("/^" . $match . "$/i", $request_uri, $matches);
+			if ($flag)
+			{
+				$this->route_info = $route;
+				$this->route_info['matches'] = $matches;
+			}
+		}
+		
+	}
+	
+	function action_do_parse_request()
+	{
+		global $wp;
+		
+		if ($this->route_info == null)
+		{
+			return true;
+		}
+		
+		$wp->query_vars = [];
+		return false;
 	}
 	
 	
@@ -524,29 +607,6 @@ class StarterSite extends Timber\Site
 	 */
 	public function add_route($route_name, $match, $template = null, $params=[])
 	{
-		if ($template != null)
-		{
-			Routes::map(
-				$match,
-				function($matches) use ($route_name, $template, $params)
-				{
-					$this->route_name = $route_name;
-					$this->route_matches = $matches;
-					$this->route_template = $template;
-					$this->route_params = $params;
-					
-					Routes::load
-					(
-						'route.php', 
-						[
-							"timber_site" => $this,
-						], 
-						"/",
-						200
-					);
-				}
-			);
-		}
 		$this->routes[$route_name] = 
 		[
 			'route_name' => $route_name,

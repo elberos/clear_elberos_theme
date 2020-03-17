@@ -1,0 +1,28 @@
+{% extends "layout.twig" %}
+
+{% block content %}
+
+
+{% set is_home = function('is_home') %}
+{% set is_front_page = function('is_front_page') %}
+{% set is_singular = function('is_singular') %}
+{% set is_search = function('is_search') %}
+
+<h1 class="category_h1">{{ site.title }}</h1>
+
+{% if is_search and count(posts) == 0 %}
+	<center>{{ __('По вашему запросу ничего не найдено', 'bayrell') }}</center>
+{% endif %}
+
+{% for post in posts %}
+	{% include ['pages/tease-'~post.post_type~'.twig', 'pages/tease.twig'] %}
+{% endfor %}
+
+{%
+	include 'include/pagination.twig' with {
+		pagination: posts.pagination ({show_all: false, mid_size: 3, end_size: 2})
+	}
+%}
+
+
+{% endblock %}

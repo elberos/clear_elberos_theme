@@ -1,0 +1,17 @@
+<article class="tease tease-{{post.post_type}}" id="tease-{{post.ID}}">
+	<h2 class="tease_title">
+		<a href="{{ post.link }}">{{ post.title }}</a>
+	</h2>
+	<div class='tease_content page_ckeditor_data'>
+		{{ site.post_preview(post.content) | raw }}
+		{# post.preview.strip(false) | raw #}
+	</div>
+	<!--
+	<div class='tease_read_more'>
+		<a href="{{ post.link }}">{{ __('Читать далее', 'bayrell') }}</a>
+	</div>
+	-->
+	{% if post.get_thumbnail %}
+		<img src="{{post.thumbnail.src}}" />
+	{% endif %}
+</article>
