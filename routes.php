@@ -3,8 +3,20 @@
 if (!class_exists(SiteTemplate::class))
 {
 
+include __DIR__ . "/admin/include.php";
+
+
 class SiteTemplate extends StarterSite
 {
+	
+	/**
+	 * Assets increment
+	 */
+	function get_f_inc()
+	{
+		return 1; /* + */
+	}
+	
 	
 	/**
 	 * Custom routes
@@ -26,12 +38,23 @@ class SiteTemplate extends StarterSite
 	
 	
 	/**
+	 * Register hooks
+	 */
+	function register_hooks()
+	{
+		parent::register_hooks();
+	}
+	
+	
+	
+	/**
 	 * After setup
 	 */
 	function setup_after()
 	{
-		
+		// $this->page_vars["wp_show"] = false;
 	}
+	
 	
 	
 	/**
@@ -39,6 +62,11 @@ class SiteTemplate extends StarterSite
 	 */
 	function extend_context($context)
 	{
+		global $wpdb;
+		
+		/* Setup menu */
+		/* $context['site_main_menu'] = new Timber\Menu('main-' . $this->language_code); */
+		
 		return $context;
 	}
 	
@@ -53,6 +81,7 @@ class SiteTemplate extends StarterSite
 		$context = Timber::context();
 		Timber::render( $template, $context );
 	}
+	
 }
 
 

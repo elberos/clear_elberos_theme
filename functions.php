@@ -1,8 +1,7 @@
 <?php
 
 define ( 'THEME_WP_SHOW', true );
-define ( 'THEME_INC', 2 ); /* +++++++ */
- 
+
 if ( ! class_exists( 'Timber' ) ) {
 	add_action( 'admin_notices', function() {
 		echo '<div class="error"><p>Timber not activated. Make sure you activate the plugin in <a href="' . esc_url( admin_url( 'plugins.php#timber' ) ) . '">' . esc_url( admin_url( 'plugins.php' ) ) . '</a></p></div>';
@@ -45,7 +44,6 @@ class StarterSite extends Timber\Site
 	 * Context
 	 */
 	public $robots;
-	public $main_menu;
 	public $categories;
 	public $language_code;
 	public $routes;
@@ -89,7 +87,7 @@ class StarterSite extends Timber\Site
 	public function setup()
 	{
 		/* Setup base variables */
-		$this->f_inc = THEME_INC;
+		$this->f_inc = $this->get_f_inc();
 		$this->search_text = isset($_GET['s']) ? $_GET['s'] : "";
 		$this->categories = get_categories();
 		$this->post = get_queried_object();
@@ -135,9 +133,6 @@ class StarterSite extends Timber\Site
 		
 		/* Setup breadcrumbs */
 		$this->setup_breadcrumbs();
-		
-		/* Setup menu */
-		/* $this->main_menu = new Timber\Menu('main-' . $this->language_code); */
 		
 		$this->initialized = true;
 		
@@ -252,6 +247,14 @@ class StarterSite extends Timber\Site
 		return $context;
 	}
 	
+	
+	/**
+	 * Assets increment
+	 */
+	function get_f_inc()
+	{
+		return 1;
+	}
 	
 	
 	/**
@@ -811,6 +814,11 @@ class StarterSite extends Timber\Site
 		return $preview;
 	}
 	
+	function to_money($value, $decimals = 2)
+	{
+		return number_format($value, $decimals, ".", " ");
+	}
+	
 	function get_count($x)
 	{
 		return count($x);
@@ -822,6 +830,58 @@ class StarterSite extends Timber\Site
 		var_dump($v);
 		echo "</pre>";
 		return "";
+	}
+	
+	function load_template_css($css_name, $flag = false)
+	{
+		$s = "";
+		if ($flag)
+		{
+			$s = '<link rel="stylesheet" href="'.$this->theme->link."/".$css_name.'?_'.$this->f_inc.'" '.
+				'type="text/css" media="screen" />';
+		}
+		else
+		{
+			$uri = get_template_directory_uri();
+			$path = get_template_directory() . "/" . $css_name;
+			if (file_exists($path))
+			{
+				$s = file_get_contents($path);
+				$s = str_replace("site.css.map", $uri . "/static/site.css.map", $s);
+			}
+			$s = "<style>" . $s . "</style>";
+		}
+		return $s;
+	}
+	
+	
+	/**
+	 * Create new instance
+	 */
+	public function newInstance($class_name, $params = [])
+	{
+		$reflectionClass = new \ReflectionClass($class_name);
+		$obj = $reflectionClass->newInstanceArgs($params);
+		return $obj;
+	}
+	
+	
+	/**
+	 * Get image from item
+	 */
+	function get_image_from_item($data, $image_name)
+	{
+		$field = @json_decode($data, true);
+		if ($field == null) return "";
+		
+		$image = isset($field[$image_name]) ? $field[$image_name] : null;
+		if ($image == null) return "";
+		
+		$path = isset($image['path']) ? $image['path'] : "";
+		if ($path == "") return "";
+		
+		$inc = isset($image['inc']) ? $image['inc'] : "1";
+		return $path . "?_=" . $inc;
 	}
 }
 
