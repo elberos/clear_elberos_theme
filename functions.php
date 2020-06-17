@@ -661,7 +661,7 @@ class StarterSite extends Timber\Site
 	{
 		if ($this->route_info != null)
 		{
-			$t = locate_template("routes.php");
+			$t = locate_template("lib.php");
 			if ($t) return $t;
 		}
 		return $template;
@@ -885,7 +885,7 @@ class StarterSite extends Timber\Site
 	}
 }
 
-include __DIR__ . "/routes.php";
+include __DIR__ . "/lib.php";
 
 global $timber_site;
 if (!$timber_site)
