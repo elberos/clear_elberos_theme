@@ -129,6 +129,7 @@ class SiteTemplate extends Elberos\Site
 	function register_routes()
 	{
 		
+		// Add articles page
 		$this->add_route
 		(
 			"site:articles", "/articles",
@@ -136,6 +137,10 @@ class SiteTemplate extends Elberos\Site
 			[
 				'title' => 'Статьи',
 				'description' => 'Статьи',
+				'context' => function($site, $context)
+				{
+					return $context;
+				}
 			]
 		);
 		
@@ -173,22 +178,6 @@ class SiteTemplate extends Elberos\Site
 		/* $context['site_main_menu'] = new Timber\Menu('main-' . $this->language_code); */
 		
 		return $context;
-	}
-	
-	
-	
-	/**
-	 * Render custom route
-	 */
-	function route_render()
-	{
-		$template = 'pages/index.twig';
-		if ($this->route_info != null)
-		{
-			$template = $this->route_info['template'];
-		}
-		$context = Timber::context();
-		Timber::render( $template, $context );
 	}
 	
 }
