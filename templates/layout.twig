@@ -73,16 +73,19 @@ function addGet(s, key, value)
 
 {% block assets %}
 <script type='text/javascript'>
-/*
 $load
-	.load(['{{ site.theme.link }}/assets/jquery-1.11.3.min.js'])
+	.load(['{{ site.theme.link }}/static/jquery-1.11.3.min.js'])
 	.deliver('jquery_loaded');
 
 $load
 	.subscribe(['jquery_loaded'])
+	.load(['/wp-content/plugins/wp-elberos-core/assets/core.js?_{{ site_f_inc }}'])
+	.deliver('core_loaded');
+	
+$load
+	.subscribe(['jquery_loaded', 'core_loaded'])
 	.load(['{{ site.theme.link }}/static/site.js?_{{ site_f_inc }}'])
 	.deliver('site_loaded');
-*/
 </script>
 {% endblock %}
 

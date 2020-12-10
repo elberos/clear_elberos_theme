@@ -20,7 +20,7 @@
 {% if site.og_type %}
 <meta property="og:type" content="{{ site.og_type }}">
 {% endif %}
-{% if site.title %}
+{% if site.full_title %}
 <meta property="og:title" content="{{ site.full_title }}">
 {% endif %}
 {% if site.description %}
@@ -32,7 +32,9 @@
 {% if site.name %}
 <meta property="og:site_name" content="{{ site.name }}">
 {% endif %}
-<meta property="article:publisher" content="{{ site.name }}">
+{% if site.article_publisher %}
+<meta property="article:publisher" content="{{ site.article_publisher }}">
+{% endif %}
 {% if count(site.article_tags) > 0 %}
 {% for tag in site.article_tags %}
 <meta property="article:tag" content="{{ tag }}">
