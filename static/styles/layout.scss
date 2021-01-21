@@ -39,6 +39,14 @@
 	
 }
 
+/* Breadcrumbs */
+.breadcrumbs{
+	&__item{
+		display: inline-block;
+		vertical-align: top;
+	}
+}
+
 /* Slideout */
 .slideout_mobile_menu{
 	display: none;
