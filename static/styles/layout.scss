@@ -1,0 +1,90 @@
+/* Section */
+.section{
+	
+	&__wrap{
+		position: relative;
+		
+		max-width: $width_site;
+		margin-left: auto;
+		margin-right: auto;
+		
+		padding: 20px 0px;
+		padding-left: 10px;
+		padding-right: 10px;
+	}
+	
+	&--nopad{
+		.section__wrap{
+			padding: 0px;
+		}
+	}
+	
+	&__title_wrap{
+		padding-top: 20px;
+		padding-bottom: 20px;
+	}
+	
+	&__title{
+		font-weight: bold;
+		text-align: center;
+		font-size: 150%;
+		margin: 0;
+		padding: 0;
+	}
+	
+	&__subtitle{
+		text-align: center;
+		margin: 0;
+	}
+	
+}
+
+/* Slideout */
+.slideout_mobile_menu{
+	display: none;
+	position: fixed;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	width: 256px;
+	min-height: 100vh;
+	overflow-y: scroll;
+	-webkit-overflow-scrolling: touch;
+	z-index: 100;
+	padding: 20px;
+	background-color: #F8F8F8;
+	border-right: 1px #ccc solid;
+	color: #59627d;
+	
+	/*
+	&.menu--open{
+		display: block;
+	}*/
+	&_title{
+		font-size: 18px;
+		padding-bottom: 20px;
+		text-align: center;
+		font-weight: bold;	
+	}
+	&_subitem{
+		padding-left: 20px;
+	}
+	&_item{
+		font-size: 16px;
+		padding-bottom: 10px;
+	}
+}
+.slideout-panel {
+	position: relative;
+	z-index: 1;
+	will-change: transform;
+	background-color: #FFF; /* A background-color is required */
+}
+.slideout-open,
+.slideout-open body,
+.slideout-open .slideout-panel {
+	overflow: hidden;
+}
+.slideout-open .slideout-menu {
+	display: block;
+}

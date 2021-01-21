@@ -79,12 +79,12 @@ $load
 
 $load
 	.subscribe(['jquery_loaded'])
-	.load(['/wp-content/plugins/wp-elberos-core/assets/core.js?_{{ site_f_inc }}'])
+	.load(['/wp-content/plugins/wp-elberos-core/assets/core.js?_{{ site.f_inc }}'])
 	.deliver('core_loaded');
 	
 $load
 	.subscribe(['jquery_loaded', 'core_loaded'])
-	.load(['{{ site.theme.link }}/static/site.js?_{{ site_f_inc }}'])
+	.load(['{{ site.theme.link }}/static/site.js?_{{ site.f_inc }}'])
 	.deliver('site_loaded');
 </script>
 {% endblock %}

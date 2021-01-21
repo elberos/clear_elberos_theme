@@ -1,8 +1,6 @@
 $grid_count: 12;
 $font_size: 14px;
-$font_family_title: sans-serif;
-$font_family_text: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
-$font_family: $font_family_text;
+$font_family: Arial;
 
 $width_site: 1140px;
 $width_xsmall: 400px;
@@ -13,3 +11,30 @@ $width_large: 1200px;
 $transition_in: 0.15s;
 $transition_out: 0.15s;
 $transition: 0.15s;
+
+$site_width: 1200px;
+$width_xsmall: 400px;
+$width_small: 800px;
+$width_medium: 1010px;
+$width_large: 1200px;
+
+$color_button_red: rgb(255, 0, 0);
+$color_button_red2: rgb(209, 75, 66);
+$color_button_blue: rgb(0, 0, 255);
+$color_button_blue2: rgb(51, 122, 183);
+$color_button_white: rgb(255, 255, 255);
+$color_text_white: rgb(255, 255, 255);
+$color_text_black: rgb(0, 0, 0);
+$color_text_black2: rgb(51, 51, 51);
+
+$color_background_red: rgb(229, 55, 52);
+$color_background_white: rgb(255, 255, 255);
+$color_background_light: #f7f7f7;
+$color_background_dark: rgb(52, 37, 37);
+
+$color_style1_background: $color_background_white;
+$color_style1_text: $color_text_black2;
+$color_style2_background: $color_background_red;
+$color_style2_text: $color_text_white;
+$color_style3_background: $color_background_dark;
+$color_style3_text: $color_text_white;
