@@ -1,4 +1,4 @@
-{% if app.getConfig('params.metrika') %}
+{% if constant('METRIKA_ENABLED') is defined and constant('METRIKA_ENABLED') %}
 
 
 {% endif %}

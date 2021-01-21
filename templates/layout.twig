@@ -79,7 +79,8 @@ $load
 
 $load
 	.subscribe(['jquery_loaded'])
-	.load(['/wp-content/plugins/wp-elberos-core/assets/core.js?_{{ site.f_inc }}'])
+	.load(['/wp-content/plugins/wp-elberos-core/assets/forms.js?_{{ site.f_inc }}'])
+	.load(['/wp-content/plugins/wp-elberos-core/assets/dialog.js?_{{ site.f_inc }}'])
 	.deliver('core_loaded');
 	
 $load
