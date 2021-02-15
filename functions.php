@@ -139,6 +139,26 @@ class SiteTemplate extends Elberos\Site
 	
 	
 	/**
+	 * Returns current title
+	 */
+	public function get_current_title()
+	{
+		return parent::get_current_title();
+	}
+	
+	
+	
+	/**
+	 * Returns current description
+	 */
+	public function get_current_description()
+	{
+		return parent::get_current_description();
+	}
+	
+	
+	
+	/**
 	 * Extend context
 	 */
 	function extend_context($context)
