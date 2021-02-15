@@ -1,6 +1,10 @@
 <?php
 
-$context = Timber::context();
-$category = new Timber\Term();
-$context['category'] = $category;
-Timber::render( array( 'pages/category-' . $category->slug . '.twig', 'pages/category.twig' ), $context );
+global $site_template;
+
+/* Render term */
+echo $site_template->render_page
+([
+	'pages/category_' . $site_template->term->slug . '.twig',
+	'pages/category.twig'
+]);

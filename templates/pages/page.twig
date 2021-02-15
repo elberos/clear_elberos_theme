@@ -2,14 +2,13 @@
 
 {% block content %}
 	
-	<article class="article article--{{post.post_type}}" id="article_{{post.ID}}">
+	<article class="article article--{{ post.post_type }}" id="article_{{ post.ID }}">
 	
 		<h1 class="article__h1">
-			{{ post.title }}
-			{% if post.edit_link %}<a class="link" href="{{ post.edit_link | raw }}">[Edit]</a>{% endif %}
+			{{ post.post_title }}
 		</h1>
 		<div class="article__body page_ckeditor_data">
-			{{ post.content | raw }}
+			{{ post.post_content | raw }}
 		</div>
 		
 	</article>

@@ -1,6 +1,12 @@
 <?php
 
-$context = Timber::context();
-$timber_post = new Timber\Post();
-$context['post'] = $timber_post;
-Timber::render( array( 'pages/page-' . $timber_post->post_name . '.twig', 'pages/page.twig' ), $context );
+global $site_template;
+$site_template->context["post"] = $site_template->post;
+
+/* Render page */
+echo $site_template->render_page
+([
+	'pages/page_' . $site_template->post->ID . '.twig',
+	'pages/post_type_' . $site_template->post->post_type . '.twig',
+	'pages/page.twig'
+]);

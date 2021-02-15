@@ -4,40 +4,21 @@ include __DIR__ . "/admin/include.php";
 
 define ( 'THEME_WP_SHOW', true );
 
-if ( ! class_exists( 'Timber' ) or ! class_exists( 'Elberos\Site' ) ) {
+if ( ! class_exists( 'Elberos\Site' ) ) {
 	add_action( 'admin_notices', function() {
-		echo '<div class="error"><p>Timber not activated. Make sure you activate the plugin in <a href="' . esc_url( admin_url( 'plugins.php#timber' ) ) . '">' . esc_url( admin_url( 'plugins.php' ) ) . '</a></p></div>';
+		echo '<div class="error"><p>Elberos Core is not activated. Make sure you activate the plugin in <a href="' . esc_url( admin_url( 'plugins.php#timber' ) ) . '">' . esc_url( admin_url( 'plugins.php' ) ) . '</a></p></div>';
 	});
 
 	add_filter('template_include', function( $template ) {
-		return get_stylesheet_directory() . '/static/no-timber.html';
+		return get_stylesheet_directory() . '/templates/no-core.html';
 	});
-
+	
 	return;
 }
 
-/**
- * Sets the directories (inside your theme) to find .twig files
- */
-Timber::$dirname = array( 'templates' );
-
 
 /**
- * By default, Timber does NOT autoescape values. Want to enable Twig's autoescape?
- * No prob! Just set this value to true
- */
-Timber::$autoescape = true;
-
-
-/**
- * Enable cache
- */
-Timber::$cache = defined('TIMBER_CACHE') ? TIMBER_CACHE : false;
-
-
-/**
- * We're going to configure our theme inside of a subclass of Timber\Site
- * You can move this to its own file and include here via php's include("MySite.php")
+ * Site template
  */
 class SiteTemplate extends Elberos\Site
 {
@@ -123,29 +104,6 @@ class SiteTemplate extends Elberos\Site
 	}
 	
 	
-	/**
-	 * Custom routes
-	 */
-	function register_routes()
-	{
-		
-		// Add articles page
-		$this->add_route
-		(
-			"site:articles", "/articles",
-			"pages/category.twig",
-			[
-				'title' => 'Статьи',
-				'description' => 'Статьи',
-				'context' => function($site, $context)
-				{
-					return $context;
-				}
-			]
-		);
-		
-	}
-	
 	
 	/**
 	 * Register hooks
@@ -153,6 +111,19 @@ class SiteTemplate extends Elberos\Site
 	function register_hooks()
 	{
 		parent::register_hooks();
+	}
+	
+	
+	
+	/**
+	 * Init
+	 */
+	public function setup_init()
+	{
+		/**
+		 * Enable cache
+		 */
+		$this->twig_cache = defined('TWIG_CACHE') ? TWIG_CACHE : true;
 	}
 	
 	
@@ -180,10 +151,34 @@ class SiteTemplate extends Elberos\Site
 		return $context;
 	}
 	
+	
+	
+	/**
+	 * Custom routes
+	 */
+	function register_routes()
+	{
+		// Add articles page
+		/*
+		$this->add_route
+		(
+			"site:articles", "/articles",
+			"pages/category.twig",
+			[
+				'title' => 'Статьи',
+				'description' => 'Статьи',
+				'context' => function($site, $context)
+				{
+					return $context;
+				}
+			]
+		);
+		*/
+	}
 }
 
-global $timber_site;
-if (!$timber_site)
+global $site_template;
+if (!$site_template)
 {
-	$timber_site = new SiteTemplate();
+	$site_template = new SiteTemplate();
 }

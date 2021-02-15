@@ -1,4 +1,3 @@
 <?php
-
-$context = Timber::context();
-Timber::render( 'pages/404.twig', $context );
+global $site_template;
+echo $site_template->render_page('pages/404.twig');
