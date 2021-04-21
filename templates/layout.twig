@@ -15,12 +15,12 @@
 
 {% include 'include/meta.twig' %}
 
-{% if site.page_vars.wp_show and site.page_vars.is_admin %}{{ function('wp_head') }}
+{% if site.page_vars.wp_show or site.page_vars.is_admin %}{{ function('wp_head') }}
 {% else %}
 <link rel="alternate" type="application/rss+xml" title="{{ site.name }} - Лента" href="/ru/feed" />
 <link rel='https://api.w.org/' href='/wp-json/' />
 <link rel="EditURI" type="application/rsd+xml" title="RSD" href="/xmlrpc.php?rsd" />
-<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="/wp-includes/wlwmanifest.xml" /> 
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="/wp-includes/wlwmanifest.xml" />
 <meta name="generator" content="WordPress" />
 {% endif %}
 
@@ -62,10 +62,10 @@ function addGet(s, key, value)
 		i--;
 	}
 	if (i<0) { kvp[kvp.length] = [key, value].join('='); }
-	return kvp.join('&'); 
+	return kvp.join('&');
 }
 </script>
-<!-- End Header JS Code -->	
+<!-- End Header JS Code -->
 
 {% block head %}
 {% endblock %}
@@ -84,7 +84,7 @@ $load
 $load
 	.subscribe(['jquery_loaded', 'core_loaded'])
 	.load(['{{ site.theme_link }}/static/site.js?_{{ site.f_inc }}'])
-	.deliver('site_loaded');
+	.deliver('scripts_loaded');
 </script>
 {% endblock %}
 
@@ -121,7 +121,7 @@ $load
 {% include ("/include/metrika.twig") %}
 {% endblock %}
 
-{% if site.page_vars.wp_show and site.page_vars.is_admin %}{{ function('wp_footer') }}{% endif %}
+{% if site.page_vars.wp_show or site.page_vars.is_admin %}{{ function('wp_footer') }}{% endif %}
 
 </body>
 {% endblock %}
