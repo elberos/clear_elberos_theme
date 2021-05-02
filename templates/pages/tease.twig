@@ -1,17 +1,19 @@
+{% set post_link = get_permalink(post.ID) %}
 <article class="tease tease-{{post.post_type}}" id="tease-{{post.ID}}">
-	<h2 class="tease_title">
-		<a href="{{ post.link }}">{{ post.title }}</a>
-	</h2>
-	<div class='tease_content page_ckeditor_data'>
-		{{ site.post_preview(post.content) | raw }}
-		{# post.preview.strip(false) | raw #}
-	</div>
-	<!--
-	<div class='tease_read_more'>
-		<a href="{{ post.link }}">{{ __('Читать далее', 'template') }}</a>
-	</div>
-	-->
-	{% if post.get_thumbnail %}
-		<img src="{{post.thumbnail.src}}" />
+	{% set thumbnail = get_the_post_thumbnail_url(post) %}
+	{% if thumbnail %}
+		<div class='tease__image'>
+			<img src="{{ thumbnail }}" />
+		</div>
 	{% endif %}
+	
+	<div class='tease__date'>
+		{{ site.wp_post_date(post.post_date, 'Y-m-d') }}
+	</div>
+	<h2 class="tease__title">
+		<a class="nolink" href="{{ post_link }}">{{ post.post_title }}</a>
+	</h2>
+	<div class='tease__read_more'>
+		<a class="nolink" href="{{ post_link }}">{{ __('Читать далее', 'template') }}</a>
+	</div>
 </article>
