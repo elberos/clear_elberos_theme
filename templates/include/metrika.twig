@@ -5,11 +5,15 @@
 
 <script>
 yaCounter=null;
+yaClientID=null;
 onJQueryLoaded(function (){
 	jQuery(window).load(function() {
 		if ((typeof window['yaCounterXXX']) != 'undefined')
 			yaCounter=yaCounterXXX;
 		/*console.log(yaCounter);*/
+		ym(00000000, 'getClientID', function(clientID) {
+			yaClientID = clientID;
+		});
 	});
 });
 
@@ -53,9 +57,11 @@ subscribeSiteEvent('metrika_event', function(event_name, data){
 	}
 	
 	/* Yandex */
-	if ((typeof yaCounter) != 'undefined' && yaCounter != null)
+	if ((typeof ym) != 'undefined' && ym != null)
+		ym(00000000,'reachGoal',data);
+	else if ((typeof yaCounter) != 'undefined' && yaCounter != null)
 		yaCounter.reachGoal(data);
-	if ((typeof yaCounterXXX) != 'undefined' && yaCounterXXX != null)
+	else if ((typeof yaCounterXXX) != 'undefined' && yaCounterXXX != null)
 		yaCounterXXX.reachGoal(data);
 	
 	console.log("metrika_event " + data);
