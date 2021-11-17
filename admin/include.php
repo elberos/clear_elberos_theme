@@ -15,7 +15,8 @@ class SiteTemplateAdmin
 		add_action('init', 'SiteTemplateAdmin::init');
 		add_action('admin_menu', 'SiteTemplateAdmin::register_admin_menu');
 		add_filter('post_type_link', 'SiteTemplateAdmin::post_type_link', false, true);
-		add_action(
+		add_action
+		(
 			'admin_init', 
 			function()
 			{
@@ -53,7 +54,7 @@ class SiteTemplateAdmin
 	
 }
 
-if ( class_exists( 'Timber' ) and class_exists( 'Elberos\Site' ) )
+if ( class_exists( 'Elberos\Site' ) )
 {
 	SiteTemplateAdmin::register_hooks();
 }

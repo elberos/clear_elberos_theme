@@ -1,7 +1,5 @@
 <?php
 
-include __DIR__ . "/admin/include.php";
-
 define ( 'THEME_WP_SHOW', true );
 
 if ( ! class_exists( 'Elberos\Site' ) ) {
@@ -15,6 +13,11 @@ if ( ! class_exists( 'Elberos\Site' ) ) {
 	
 	return;
 }
+
+
+require_once __DIR__ . "/admin/include.php";
+require_once __DIR__ . "/controllers/DefaultController.php";
+
 
 
 /**
@@ -178,22 +181,7 @@ class SiteTemplate extends Elberos\Site
 	 */
 	function register_routes()
 	{
-		// Add articles page
-		/*
-		$this->add_route
-		(
-			"site:articles", "/articles",
-			"pages/category.twig",
-			[
-				'title' => 'Статьи',
-				'description' => 'Статьи',
-				'context' => function($site, $context)
-				{
-					return $context;
-				}
-			]
-		);
-		*/
+		$this->addController(new \App\DefaultController());
 	}
 }
 
