@@ -11,9 +11,12 @@ onJQueryLoaded(function (){
 		if ((typeof window['yaCounterXXX']) != 'undefined')
 			yaCounter=yaCounterXXX;
 		/*console.log(yaCounter);*/
-		ym(00000000, 'getClientID', function(clientID) {
-			yaClientID = clientID;
-		});
+		if ((typeof ym) != 'undefined' && ym != null)
+		{
+			ym(00000000, 'getClientID', function(clientID) {
+				yaClientID = clientID;
+			});
+		}
 	});
 });
 
